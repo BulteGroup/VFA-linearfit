@@ -5,39 +5,58 @@
 
 %%
 clear all
-% close all]
+close all
 
-currpath = pwd;
-% Where to find the DICOM data 
-loadpath = uigetdir(currpath,'Select DICOM directory');
+%%%%%%%%%%%%%%%%%%%
 
-metapath = uigetdir(loadpath,'Select a DICOM VFA sub dir');
-cd(metapath)
+dirName = 'BIO102_MRI1_air';
+options = struct('recursive', true, 'verbose', true, 'loadCache', false);
 
-metafile = uigetfile('.dcm','Select a file');
-metadata=dicominfo(metafile);
+[partitions, meta] = readDicomSeries(dirName, options);
+ % Return values:
+%   imagePartitions: Array of structs containing all partitions found
+%   metaFilenames: Cell array of dicom filenames that contain no images
 
-cd(loadpath)
+% Read image by partition index
+% readDicomSeriesImage reads a dicom image (and optional dicominfo) from a
+% dicom series partition that was found with the readDicomSeries function.
+%
+% This function can be used in two ways:
+% [image, info] = readDicomSeriesImage(directory, partition):
+% Reads a partition specified by the caller. partition should be one
+% element of the imagePartitions structure returned by readDicomSeries.
+% directory should be the same directory that was provided to
+% readDicomSeries.
+%
+% The image return value will contain only the frames specified in the
+% partition, typically in a 3D matrix. The type is the same as returned
+% from dicomread (usually int16).
+%
+% The info return value is either a dicominfo structure in case of an
+% enhanced dicom file, or a cell array containing dicominfo structures in
+% case of a series of classic dicom files.
+[image1, info1] = readDicomSeriesImage(dirName, partitions(1));
 
-d = dicomLoadAllSeries('.');
-cd(currpath)
 
-nbrow = size(d(1).imData,1);
-nbcol = size(d(1).imData,2);
-nbslice = size(d(1).imData, 3);
-nbseries = length(d);
+nbrow = size(image1,1);
+nbcol = size(image1,2);
+nbslice = size(image1, 3);
+nbseries = length(partitions);
 
 data = zeros(nbrow,nbcol,nbslice,nbseries); % Complex data
 
 
 for k = 1:nbseries
-	dataTmp = d(k).imData;
+    [image, info] = readDicomSeriesImage(dirName, partitions(k));
+	dataTmp = image;
 	dataTmp = double(squeeze(dataTmp));	
-	for ss = 1:nbslice %#ok<ALIGN>
+	for ss = 1:nbslice 
 		data(:,:,ss,k) = dataTmp(:,:,ss); 
     end
 end 
+size(data)
 
+% data should now be 256x256x14x4
 imagesc(data(:,:,nbslice/2));
 
 % flip_ang = [2,5,10,15]; degrees
@@ -74,8 +93,6 @@ line = zeros(4,nbrow*nbcol*nbslice);
 %     'independent',{'Si'},'coefficients',{'Eone','Mo'},'options',fo); % Eone * Si + Mo * (1 - Eone)
 
 
-
-
 %% Calculate T1
 for z=1:nbslice
     for y=1:nbcol
@@ -102,15 +119,15 @@ end
 
 % go from slope to t1... somehow, problem is variable TR
 
-imagesc(rot90(t1map(:,:,nbslice/2)));
+imagesc(t1map(:,:,nbslice/2));
 caxis([0,3500]);
 
 dicomt1map = uint16(reshape(t1map,[nbrow nbcol 1 nbslice]));
 
 %try without copy and createmode
 % try with lowercase copy
-
-dicomwrite(dicomt1map,sprintf('%s_T1map.dcm',loadpath), metadata,'CreateMode','copy');
+metadata=info1(1);
+dicomwrite(dicomt1map,sprintf('%s_T1map.dcm',dirName), metadata{1,1},'CreateMode','copy');
 %niftiwrite(dicomt1map,sprintf('%s_T1map.nii',loadpath),metadata);
 
 % need to get metadata from another dicom file
