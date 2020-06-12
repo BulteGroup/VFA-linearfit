@@ -3,6 +3,8 @@
 % Daniel Bulte, University of Oxford, November 2016
 % Edited by E Bluemke 2019/20
 
+% Note: you will need to download: DICOM series reader https://uk.mathworks.com/matlabcentral/fileexchange/71807-dicom-series-reader
+
 %%
 clear all
 close all
