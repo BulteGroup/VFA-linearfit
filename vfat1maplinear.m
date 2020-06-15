@@ -57,7 +57,9 @@ end
 size(data)
 
 % data should now be 256x256x14x4
-imagesc(data(:,:,nbslice/2));
+figure
+imagesc(data(:,:,3));
+caxis([0,3500]);
 
 % flip_ang = [2,5,10,15]; degrees
 % flip_ang = [0.0349066;0.0872665;0.174533;0.261799]; % radians
@@ -118,19 +120,22 @@ for z=1:nbslice
 end
 
 % go from slope to t1... somehow, problem is variable TR
-
-imagesc(t1map(:,:,nbslice/2));
+figure
+imagesc(t1map(:,:,3));
 caxis([0,3500]);
 
 dicomt1map = uint16(reshape(t1map,[nbrow nbcol 1 nbslice]));
 
+figure
+imagesc(dicomt1map(:,:,3));
+caxis([0,3500]);
+
 %try without copy and createmode
 % try with lowercase copy
 metadata=info1(1);
-dicomwrite(dicomt1map,sprintf('%s_T1map.dcm',dirName), metadata{1,1},'CreateMode','copy');
-%niftiwrite(dicomt1map,sprintf('%s_T1map.nii',loadpath),metadata);
+dicomwrite(dicomt1map,sprintf('%s_T1map.dcm',dirName), metadata{1,1},'CreateMode','Copy');
+%niftiwrite(dicomt1map,sprintf('%s_T1map.nii',dirName),metadata{1,1});
 
-% need to get metadata from another dicom file
 % reshape undoes the squeeze, which removed the colour dimension
 
 %% end
