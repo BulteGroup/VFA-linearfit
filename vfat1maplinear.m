@@ -11,7 +11,8 @@ close all
 
 %%%%%%%%%%%%%%%%%%%
 
-dirName = 'BIO102_MRI1_air';
+dirName = 'BIO102_MRI1_air'; % this is hard-coded, sorry - I need to change this to allow you to pick a folder
+
 options = struct('recursive', true, 'verbose', true, 'loadCache', false);
 
 [partitions, meta] = readDicomSeries(dirName, options);
