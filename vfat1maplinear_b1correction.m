@@ -126,7 +126,7 @@ saveas(gcf,sprintf('%s.png',name))
 b1map_gsmooth= imgaussfilt(b1map,8);
 
 figure
-imagesc(b1map_gsmooth(:,:,4));
+imagesc(b1map_gsmooth(:,:,8));
 name='B1map Smoothed Gaussian 4x4'
 title(sprintf('%s.png',name))
 caxis([0,600]);
