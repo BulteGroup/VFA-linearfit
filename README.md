@@ -9,7 +9,9 @@ This will load your SPGR images (as dicoms) in the folder specified (currently h
 # vfat1maplinear_b1correction.m 
 This version includes one extra step - B1 correction to improve the T1 estimation. B1 inhomogeneities impact the actual flip angle that mangetization in a voxel rotates due to on-resonance RF pulses. It's often represented as a normalized correction factor of the nominal flip angle (nominal means the flip angle you actually intended & set at the scanner). i.e.:
 
-\alpha_actual = B1_correction factor.* \alpha_nominal
+alpha_actual = B1_correction factor.* alpha_nominal
+
+(alpha is the flip angle)
 
 An important note about the B1 maps used in this script, with many thanks to Emil Ljungberg and Mathieu Boudreau  KCL for some key information and resources:
 The B1 maps this script is written to import were produced by 2db1map. 2db1map is built on the Bloch Siegert method by Sacolick et al. For more info about the Bloch Siegert method, check out the resources in this issue https://github.com/qMRLab/qMRLab/issues/394 from Mathieu Boudreau.
