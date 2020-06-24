@@ -10,11 +10,9 @@ clear all
 close all
 
 %%%%%%%%%%%%%%%%%%%
-
-dirName = 'BIO102_MRI1_air'; % this is hard-coded, sorry - I need to change this to allow you to pick a folder
-
+disp('Select SPGR Folder set')
+dirName = uigetdir(); % this is hard-coded, sorry - I need to change this to allow you to pick a folder
 options = struct('recursive', true, 'verbose', true, 'loadCache', false);
-
 [partitions, meta] = readDicomSeries(dirName, options);
  % Return values:
 %   imagePartitions: Array of structs containing all partitions found
@@ -60,9 +58,16 @@ end
 size(data)
 
 % data should now be 256x256x14x4
+% data should now be 256x256x14x4
 figure
-imagesc(data(:,:,3));
+imagesc(data(:,:,8));
+name='Raw loaded SPGR'
 caxis([0,3500]);
+axis off
+title(sprintf('%s.png',name))
+colorbar
+daspect([1 1 1])
+saveas(gcf,sprintf('%s.png',name))
 
 % flip_ang = [2,5,10,15]; degrees
 % flip_ang = [0.0349066;0.0872665;0.174533;0.261799]; % radians
@@ -123,15 +128,23 @@ for z=1:nbslice
 end
 
 % go from slope to t1... somehow, problem is variable TR
+
+
+for i=1:nbslice
+
 figure
-imagesc(t1map(:,:,3));
+imagesc(t1map(:,:,i));
+title(sprintf('%s-%d.png',dirName,i))
 caxis([0,3500]);
+colorbar
+axis off
+daspect([1 1 1])
+saveas(gcf,sprintf('%s_%d.png',dirName,i))
+
+end
 
 dicomt1map = uint16(reshape(t1map,[nbrow nbcol 1 nbslice]));
 
-figure
-imagesc(dicomt1map(:,:,3));
-caxis([0,3500]);
 
 %try without copy and createmode
 % try with lowercase copy

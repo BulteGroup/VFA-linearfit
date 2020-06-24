@@ -11,7 +11,9 @@ close all
 
 %%%%%%%%%%%%%%%%%%%
 
-dirName = 'BIO102_MRI1_air';
+dirName = 'BIO102_MRI2_air';
+b1map_orig=dicomreadVolume('MR_series_24_B1_MAP_(air)/b1map');
+
 options = struct('recursive', true, 'verbose', true, 'loadCache', false);
 
 [partitions, meta] = readDicomSeries(dirName, options);
@@ -40,7 +42,6 @@ options = struct('recursive', true, 'verbose', true, 'loadCache', false);
 [image1, info1] = readDicomSeriesImage(dirName, partitions(1));
 
 % load b1 map 
-b1map_orig=dicomreadVolume('MR_series_23_B1_MAP_(air)/b1map');
 
 nbrow = size(image1,1);
 nbcol = size(image1,2);
@@ -104,6 +105,8 @@ line = zeros(4,nbrow*nbcol*nbslice);
 
 b1map=zeros(nbrow,nbcol,nbslice);
 b1map=double(b1map);
+
+% 
 for z=1:7
 
     b1mapslice = b1map_orig(:,:,z);
@@ -113,26 +116,34 @@ for z=1:7
     b1map(:,:,first)= imresize(b1mapslice,[nbrow nbcol],'bilinear');
 end
 
+for i=1:nbslice
 figure
-imagesc(b1map(:,:,8));
+imagesc(b1map(:,:,i));
 name='B1 map scaled up'
 axis off
-caxis([0,600]);
-title(sprintf('%s.png',name))
+caxis([0,500]);
+title(sprintf('%s-%d.png',name,i))
 colorbar
 daspect([1 1 1])
-saveas(gcf,sprintf('%s.png',name))
+saveas(gcf,sprintf('%s_%d.png',name,i))
+end
 
-b1map_gsmooth= imgaussfilt(b1map,8);
+b1map_gsmooth= imgaussfilt(b1map,4);
+
+for i=1:nbslice
+b1map_gsmooth= imgaussfilt(b1map,4);
 
 figure
-imagesc(b1map_gsmooth(:,:,8));
+imagesc(b1map_gsmooth(:,:,i));
 name='B1map Smoothed Gaussian 4x4'
-title(sprintf('%s.png',name))
-caxis([0,600]);
+title(sprintf('%s-%d.png',name,i))
+axis off
+caxis([0,500]);
 colorbar
 daspect([1 1 1])
-saveas(gcf,sprintf('%s.png',name))
+saveas(gcf,sprintf('%s_%d.png',name,i))
+
+end 
 
 %% Calculate T1
 for z=1:nbslice
@@ -183,71 +194,80 @@ for z=1:nbslice
     z % counter to show how far through calc is
 end
 
-% %% UNCORRECTED (for the record, to visualize the improvement)
-% % 
-% t1map_raw = zeros(nbrow,nbcol,nbslice);
-% line_raw = zeros(4,nbrow*nbcol*nbslice);
-% nominal_flip_ang = [0.261799;0.174533;0.0872665;0.0349066]; % radians
+%% UNCORRECTED (for the record, to visualize the improvement)
 % 
-% sinfa = sin(nominal_flip_ang);
-% tanfa = tan(nominal_flip_ang);
-% 
-% sfa1 = sinfa(1);
-% sfa2 = sinfa(2);
-% sfa3 = sinfa(3);
-% sfa4 = sinfa(4);
-% 
-% tfa1 = tanfa(1);
-% tfa2 = tanfa(2);
-% tfa3 = tanfa(3);
-% tfa4 = tanfa(4);
-% 
-% for z=1:nbslice
-%     for y=1:nbcol
-%         for x=1:nbrow
-%         if (mask(x,y,z)==1)
-%             line_raw(:,x*y*z) = data(x,y,z,:);
-%             why = [line_raw(1,x*y*z)./sfa1;line_raw(2,x*y*z)./sfa2;line_raw(3,x*y*z)./sfa3;line_raw(4,x*y*z)./sfa4];
-%             echs = [line_raw(1,x*y*z)./tfa1;line_raw(2,x*y*z)./tfa2;line_raw(3,x*y*z)./tfa3;line_raw(4,x*y*z)./tfa4];
-% %             f = fit(echs,why,myfittype);
-%             f = polyfit(echs,why,1);
-% %             coeffvals = coeffvalues(f);
-%             Tone = -tr/log(f(1));
-%             t1map_raw(x,y,z)= real(Tone);
-%             
-%             if (isnan(t1map_raw(x,y,z)) || t1map_raw(x,y,z)<0 || isinf(t1map_raw(x,y,z)))
-%                 t1map_raw(x,y,z)=0;
-%                 
-%             end
-%         end
-%         end
-%     end
-%     z % counter to show how far through calc is
-% end
+t1map_raw = zeros(nbrow,nbcol,nbslice);
+line_raw = zeros(4,nbrow*nbcol*nbslice);
+nominal_flip_ang = [0.261799;0.174533;0.0872665;0.0349066]; % radians
+
+sinfa = sin(nominal_flip_ang);
+tanfa = tan(nominal_flip_ang);
+
+sfa1 = sinfa(1);
+sfa2 = sinfa(2);
+sfa3 = sinfa(3);
+sfa4 = sinfa(4);
+
+tfa1 = tanfa(1);
+tfa2 = tanfa(2);
+tfa3 = tanfa(3);
+tfa4 = tanfa(4);
+
+for z=1:nbslice
+    for y=1:nbcol
+        for x=1:nbrow
+        if (mask(x,y,z)==1)
+            line_raw(:,x*y*z) = data(x,y,z,:);
+            why = [line_raw(1,x*y*z)./sfa1;line_raw(2,x*y*z)./sfa2;line_raw(3,x*y*z)./sfa3;line_raw(4,x*y*z)./sfa4];
+            echs = [line_raw(1,x*y*z)./tfa1;line_raw(2,x*y*z)./tfa2;line_raw(3,x*y*z)./tfa3;line_raw(4,x*y*z)./tfa4];
+%             f = fit(echs,why,myfittype);
+            f = polyfit(echs,why,1);
+%             coeffvals = coeffvalues(f);
+            Tone = -tr/log(f(1));
+            t1map_raw(x,y,z)= real(Tone);
+            
+            if (isnan(t1map_raw(x,y,z)) || t1map_raw(x,y,z)<0 || isinf(t1map_raw(x,y,z)))
+                t1map_raw(x,y,z)=0;
+                
+            end
+        end
+        end
+    end
+    z % counter to show how far through calc is
+end
 
 % go from slope to t1... somehow, problem is variable TR
+
+
+for i=1:nbslice
+
 figure
-imagesc(t1map(:,:,8));
-name='B1-corrected T1 map'
-title(sprintf('%s.png',name))
+imagesc(t1map(:,:,i));
+name='B1-corrected T1 map';
+title(sprintf('%s-%d.png',name,i))
 caxis([0,3500]);
 colorbar
 axis off
 daspect([1 1 1])
-saveas(gcf,sprintf('%s.png',name))
-% 
-% figure
-% imagesc(t1map_raw(:,:,8));
-% name='Uncorrected T1 map'
-% title(sprintf('%s.png',name))
-% caxis([0,3500]);
-% colorbar
-% axis off
-% daspect([1 1 1])
-% saveas(gcf,sprintf('%s.png',name))
+saveas(gcf,sprintf('%s_%d.png',name,i))
+
+
+figure
+imagesc(t1map_raw(:,:,i));
+name='Uncorrected T1 map';
+title(sprintf('%s-%d.png',name,i))
+caxis([0,3500]);
+colorbar
+axis off
+daspect([1 1 1])
+saveas(gcf,sprintf('%s_%d.png',name,i))
+
+end
+
+
 
 dicomt1map = uint16(reshape(t1map,[nbrow nbcol 1 nbslice]));
-%dicomt1map_raw = uint16(reshape(t1map_raw,[nbrow nbcol 1 nbslice]));
+dicomt1map_raw = uint16(reshape(t1map_raw,[nbrow nbcol 1 nbslice]));
 
 
 
@@ -255,7 +275,7 @@ dicomt1map = uint16(reshape(t1map,[nbrow nbcol 1 nbslice]));
 % try with lowercase copy
 metadata=info1(1);
 dicomwrite(dicomt1map,sprintf('%s_T1map_b1corr.dcm',dirName), metadata{1,1},'CreateMode','Copy');
-%dicomwrite(dicomt1map_raw,sprintf('%s_T1map_uncorrected.dcm',dirName), metadata{1,1},'CreateMode','Copy');
+dicomwrite(dicomt1map_raw,sprintf('%s_T1map_uncorrected.dcm',dirName), metadata{1,1},'CreateMode','Copy');
 %niftiwrite(dicomt1map,sprintf('%s_T1map.nii',dirName),metadata{1,1});
 
 % reshape undoes the squeeze, which removed the colour dimension
