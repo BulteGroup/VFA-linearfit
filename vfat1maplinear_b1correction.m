@@ -10,9 +10,12 @@ clear all
 close all
 
 %%%%%%%%%%%%%%%%%%%
+disp('Select SPGR Folder set')
+dirName = uigetdir(); 
 
-dirName = 'BIO102_MRI2_air';
-b1map_orig=dicomreadVolume('MR_series_24_B1_MAP_(air)/b1map');
+disp('Select b1map Folder set')
+b1mapdir = uigetdir(); 
+b1map_orig=dicomreadVolume(b1mapdir);
 
 options = struct('recursive', true, 'verbose', true, 'loadCache', false);
 
@@ -265,10 +268,9 @@ saveas(gcf,sprintf('%s_%d.png',name,i))
 end
 
 
-
 dicomt1map = uint16(reshape(t1map,[nbrow nbcol 1 nbslice]));
 dicomt1map_raw = uint16(reshape(t1map_raw,[nbrow nbcol 1 nbslice]));
-
+% reshape undoes the squeeze, which removed the colour dimension
 
 
 %try without copy and createmode
@@ -278,6 +280,6 @@ dicomwrite(dicomt1map,sprintf('%s_T1map_b1corr.dcm',dirName), metadata{1,1},'Cre
 dicomwrite(dicomt1map_raw,sprintf('%s_T1map_uncorrected.dcm',dirName), metadata{1,1},'CreateMode','Copy');
 %niftiwrite(dicomt1map,sprintf('%s_T1map.nii',dirName),metadata{1,1});
 
-% reshape undoes the squeeze, which removed the colour dimension
+beep % will alert you when it's done running :-)
 
 %% end

@@ -11,7 +11,7 @@ close all
 
 %%%%%%%%%%%%%%%%%%%
 disp('Select SPGR Folder set')
-dirName = uigetdir(); % this is hard-coded, sorry - I need to change this to allow you to pick a folder
+dirName = uigetdir(); 
 options = struct('recursive', true, 'verbose', true, 'loadCache', false);
 [partitions, meta] = readDicomSeries(dirName, options);
  % Return values:
@@ -58,7 +58,7 @@ end
 size(data)
 
 % data should now be 256x256x14x4
-% data should now be 256x256x14x4
+
 figure
 imagesc(data(:,:,8));
 name='Raw loaded SPGR'
@@ -144,7 +144,7 @@ saveas(gcf,sprintf('%s_%d.png',dirName,i))
 end
 
 dicomt1map = uint16(reshape(t1map,[nbrow nbcol 1 nbslice]));
-
+% reshape undoes the squeeze, which removed the colour dimension
 
 %try without copy and createmode
 % try with lowercase copy
@@ -152,6 +152,6 @@ metadata=info1(1);
 dicomwrite(dicomt1map,sprintf('%s_T1map.dcm',dirName), metadata{1,1},'CreateMode','Copy');
 %niftiwrite(dicomt1map,sprintf('%s_T1map.nii',dirName),metadata{1,1});
 
-% reshape undoes the squeeze, which removed the colour dimension
+beep % will alert you when it's done running :-)
 
 %% end
