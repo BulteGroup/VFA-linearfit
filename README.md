@@ -2,11 +2,11 @@
 Note: make sure you have the Image Processing Toolbox installed (https://www.mathworks.com/products/image.html).
 
 This repo contains two matlab scripts:
-# vfat1maplinear.m 
+## vfat1maplinear.m 
 This will load your SPGR images (as dicoms) in the folder specified (currently hard-coded, sorry) and the flip angles specified (also hard-coded to 2,5,10,15 degrees) and create a VFA T1 map using a linear fit. It will save the T1 map as a dicom.
 
 
-# vfat1maplinear_b1correction.m 
+## vfat1maplinear_b1correction.m 
 This version includes one extra step - B1 correction to improve the T1 estimation. B1 inhomogeneities impact the actual flip angle that mangetization in a voxel rotates due to on-resonance RF pulses. It's often represented as a normalized correction factor of the nominal flip angle (nominal means the flip angle you actually intended & set at the scanner). i.e.:
 
 alpha_actual = B1_correction factor.* alpha_nominal
